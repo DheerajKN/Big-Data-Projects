@@ -1,0 +1,172 @@
+Project Title: Youtube Data Analysis
+Queries and their codes
+
+A. Find out the top 5 categories with maximum number of videos uploaded.
+
+package in.edureka.mapreduce;
+
+
+import java.io.IOException;
+
+import java.util.StringTokenizer;
+
+
+import org.apache.hadoop.io.IntWritable;
+
+import org.apache.hadoop.io.LongWritable;
+
+import org.apache.hadoop.io.Text;
+
+import org.apache.hadoop.mapreduce.Mapper;
+
+import org.apache.hadoop.mapreduce.Reducer;
+
+import org.apache.hadoop.conf.Configuration;
+
+import org.apache.hadoop.mapreduce.Job;
+
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+
+
+import in.edureka.mapreduce.WordCount.Map;
+
+import in.edureka.mapreduce.WordCount.Reduce;
+
+
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+import org.apache.hadoop.fs.Path;
+
+
+
+public class youtubeproj {
+
+	public static class Map extends Mapper<LongWritable,Text,Text,IntWritable>{
+
+             private Text category = new Text();
+  
+           private final static IntWritable one = new IntWritable(1);
+
+		public void map(LongWritable key, Text value,Context context)
+	throws IOException,InterruptedException {
+
+                   String line = value.toString();
+ 
+                  String str[]=line.split("\t");
+
+                   if(str.length > 5){
+
+                	   category.set(str[3]);
+
+                   }
+
+                         context.write(category, one);}
+
+	}
+	
+
+
+	public static class Reduce extends Reducer<Text,IntWritable,Text,IntWritable>{
+
+
+		public void reduce(Text key, Iterable<IntWritable> values,Context context)
+	throws IOException,InterruptedException {
+
+		               int sum=0;
+
+		               for(IntWritable val : values){
+
+		            	   sum+=val.get();}
+
+		               
+		               context.write(key, new IntWritable(sum)); } 
+             
+		}
+
+
+
+
+public static void main(String[] args) throws Exception {
+		
+	
+	
+Configuration conf= new Configuration();
+	
+
+
+	Job job = new Job(conf,"categories");
+
+
+	
+	job.setJarByClass(youtubeproj.class);
+	
+job.setMapperClass(Map.class);
+
+	job.setReducerClass(Reduce.class);
+	
+	
+
+job.setMapOutputKeyClass(Text.class);
+	
+job.setMapOutputValueClass(IntWritable.class);
+
+	job.setOutputKeyClass(Text.class);
+	
+
+job.setOutputValueClass(IntWritable.class);
+
+	
+	job.setInputFormatClass(TextInputFormat.class);
+
+	job.setOutputFormatClass(TextOutputFormat.class);
+
+
+	
+	
+
+	Path outputPath = new Path(args[1]);
+
+        
+    FileInputFormat.addInputPath(job, new Path(args[0]));
+   
+ FileOutputFormat.setOutputPath(job, new Path(args[1]));
+		
+	
+ outputPath.getFileSystem(conf).delete(outputPath);
+
+	
+	
+	System.exit(job.waitForCompletion(true) ? 0 : 1);
+
+}
+}
+
+
+Inorder to view the outuput
+hadoop fs -cat /Proj/ANSA/part-r-00000 | sort –n –k2 –r | head  –n5 
+
+Pre-Work for B and C queries
+1) Creating a hive table
+create table youtubeproj(vid string,uplo string,interval int,category string
+len int,views int,rating float,nrate int,comment int,rvid string) row format 
+delimited fields terminated by '\t' stored as text file;
+
+2)store youtubedata.txt to hive table youtubeproj
+  In HDFS:
+load data inpath 'Proj/youtubedata.txt' overwrite into table youtubeproj;
+  In pwd of the linux termainal:
+load data local inpath 'youtubedata.txt'into table table youtubeproj;
+
+B. Find out the top 10 rated videos.
+
+select vid,rating from youtubeproj sort by rating desc limit 10;
+
+C. Find out the most viewed videos
+
+select vid,views from youtubeproj sort by views desc limit 1;
+
+Outputs will be named as ANS A, ANS B, ANS C .png formats

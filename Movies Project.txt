@@ -1,0 +1,40 @@
+Project Title: Movies Data Analysis
+Queries and their Codes
+
+Pre-Work
+
+pig -x local
+movies = LOAD '/home/edureka/moviesdata.txt' USING PigStorage(',') as (id:int,
+name:chararray,year:int,rating:float,duration:int);
+
+A. Find the number of movies released between 1950 and 1960.
+
+movies_between_1950_to_1960 = FILTER movies by year>1950 and year<1960;
+DUMP movies_between_1950_to_1960;
+
+B. Find the number of movies having rating more than 4.
+
+ movies_rating_morethan_four = FILTER movies BY rating>4.0;
+ DUMP movies_rating_morethan_four;
+
+C. Find the movies whose rating are between 3 and 4.
+
+movies_rating_3_to_4 = FILTER movies BY rating>3.0 and rating<4.0;
+DUMP movies_rating_3_to_4;
+
+D. Find the number of movies with duration more than 2 hours (7200 second).
+
+movies_duration_morethan_2hrs = FILTER movies by duration > 7200;
+DUMP movies_duration_morethan_2hrs;
+
+E. Find the list of years and number of movies released each year.
+
+group_by_year = group movies by year;
+count_by_year = FOREACH group_by_year GENERATE group, COUNT(movies);
+DUMP count_by_year;
+
+F. Find the total number of movies in the dataset.
+
+group_up = GROUP count_by_year ALL;
+sum_up = FOREACH group_up GENERATE SUM(count_by_year.$1);
+DUMP sum_up;
